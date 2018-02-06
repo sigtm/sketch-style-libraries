@@ -1,3 +1,5 @@
+![Icon](assets/icon.svg)
+
 # Sketch Style Libraries
 
 A simple plugin that adds the option to import layer & text styles from a Sketch Library. 
