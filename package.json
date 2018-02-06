@@ -1,0 +1,27 @@
+{
+  "name": "Style Libraries",
+  "description": "Sync layer & text styles from any Sketch Library",
+  "author": "Sigurd Mannsaker",
+  "version": "0.2.1",
+  "license": "MIT",
+  "repository": {
+    "url": "https://github.com/sigtm/sketch-style-libraries"
+  },
+  "engines": {
+    "sketch": ">=3.0"
+  },
+  "skpm": {
+    "name": "sketch-style-libraries",
+    "manifest": "src/manifest.json",
+    "main": "style-libraries.sketchplugin"
+  },
+  "scripts": {
+    "build": "skpm-build",
+    "watch": "skpm-build --watch",
+    "start": "skpm-build --watch --run",
+    "postinstall": "npm run build && skpm-link"
+  },
+  "devDependencies": {
+    "@skpm/builder": "^0.3.0"
+  }
+}
