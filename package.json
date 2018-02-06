@@ -1,5 +1,5 @@
 {
-  "name": "Style Libraries",
+  "name": "sketch-style-libraries",
   "description": "Sync layer & text styles from any Sketch Library",
   "author": "Sigurd Mannsaker",
   "version": "0.2.1",
@@ -13,7 +13,7 @@
   "skpm": {
     "name": "sketch-style-libraries",
     "manifest": "src/manifest.json",
-    "main": "style-libraries.sketchplugin"
+    "main": "sketch-style-libraries.sketchplugin"
   },
   "scripts": {
     "build": "skpm-build",
