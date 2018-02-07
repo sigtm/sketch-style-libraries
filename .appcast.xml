@@ -1,16 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
   <channel>
-    <title>Symbol Organizer</title>
-    <description>Sync layer & text styles from any Sketch Library</description>
     <item>
-      <enclosure url="https://github.com/sigtm/sketch-style-libraries/releases/download/v0.2.4/sketch-style-libraries.sketchplugin.zip" sparkle:version="0.2.4"/>
-    </item>
-    <item>
-      <enclosure url="https://github.com/sigtm/sketch-style-libraries/releases/download/v0.2.3/sketch-style-libraries.sketchplugin.zip" sparkle:version="0.2.3"/>
-    </item>
-    <item>
-      <enclosure url="https://github.com/sigtm/sketch-style-libraries/releases/download/v0.2.2/sketch-style-libraries.sketchplugin.zip" sparkle:version="0.2.2"/>
+      <enclosure url="https://github.com/sigtm/sketch-style-libraries/releases/download/v0.2.5/sketch-style-libraries.sketchplugin.zip" sparkle:version="0.2.5"/>
     </item>
   </channel>
 </rss>
