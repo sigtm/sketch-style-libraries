@@ -2,15 +2,14 @@
 
 # Sketch Style Libraries
 
-A simple plugin that adds the option to sync layer & text styles from a Sketch Library. 
+A lightweight plugin that lets you pull layer & text styles from a Sketch Library, so your project is always in sync.
 
-👌 Keep your whole design system in one file, and not just the symbols
+👌 Keep your whole design system in your library, and not just the symbols
 
-👌 No manual export creating extra "style files"
+👌 No manual export/import via separate "style files"
 
 👌 No need to sync with another cloud service 
 
----
 
 ## Usage
 
@@ -19,13 +18,11 @@ A simple plugin that adds the option to sync layer & text styles from a Sketch L
 3. Pick a library to import/update styles from
 4. Profit
 
----
 
 ## What it does
 
-If a style by the same name already exists, it updates it. If it doesn't, it adds it.
+Existing styles are updated (matched by name), and missing ones are added.
 
----
 
 ## Acknowledgements
 
@@ -37,8 +34,7 @@ Particular credit goes to these two excellent plugins, which I wholeheartedly re
 
 [Shared Text Styles](https://github.com/nilshoenson/shared-text-styles)
 
----
 
 ## Input
 
-Hopefully this functionality will be added natively soon, but I will keep maintaining this in the meantime. If you have any thoughts, suggestions or feedback, please don't hesitate to create an issue!
+Hopefully this functionality will be added natively soon, but I will keep maintaining this in the meantime. If you have any thoughts, suggestions or feedback, please don't hesitate to [create an issue](issues)!
