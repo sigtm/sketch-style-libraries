@@ -12,7 +12,8 @@
       "identifier": "sync-styles-from-library",
       "script": "./sync-styles.js",
       "shortcut": "cmd option control s",
-      "description": "Select library and import its layer & text styles"
+      "description": "Sync layer & text styles from a library...",
+      "icon": "icon.png"
     }
   ],
   "menu": {
