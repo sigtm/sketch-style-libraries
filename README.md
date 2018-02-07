@@ -37,4 +37,4 @@ Particular credit goes to these two excellent plugins, which I wholeheartedly re
 
 ## Input
 
-Hopefully this functionality will be added natively soon, but I will keep maintaining this in the meantime. If you have any thoughts, suggestions or feedback, please don't hesitate to [create an issue](issues)!
+Hopefully this functionality will be added natively soon, but I will keep maintaining this in the meantime. If you have any thoughts, suggestions or feedback, please don't hesitate to [create an issue](https://github.com/sigtm/sketch-style-libraries/issues)!
