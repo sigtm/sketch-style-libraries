@@ -3,7 +3,7 @@
   "description": "Sync layer & text styles from any Sketch Library",
   "icon": "assets/icon.png",
   "author": "Sigurd Mannsaker",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "license": "MIT",
   "repository": {
     "url": "https://github.com/sigtm/sketch-style-libraries"
