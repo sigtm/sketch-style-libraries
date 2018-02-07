@@ -20,10 +20,10 @@ A lightweight plugin that lets you pull layer & text styles from a Sketch Librar
 
 ## Installing
 
-<a href="http://bit.ly/SketchRunnerWebsite"><img src="http://bit.ly/RunnerBadgeBlue"></a>
+<a href="http://bit.ly/SketchRunnerWebsite"><img src="http://bit.ly/RunnerBadgeBlue" width="160" height="41"></a>
 
 The easiest way to install Style Libraries is via Sketch Runner. Otherwise, you can clone this repo or grab the [latest release](https://github.com/sigtm/sketch-style-libraries/releases/latest)) and double click the `.sketchplugin` file to install it manually.
-
+s
 
 ## What it does
 
