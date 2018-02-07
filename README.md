@@ -5,7 +5,9 @@
 A simple plugin that adds the option to import layer & text styles from a Sketch Library. 
 
 👌 Keep your whole design system in one file, and not just the symbols
+
 👌 No manual export/import creating extra "style files"
+
 👌 No need to sync with another cloud service 
 
 
