@@ -3,7 +3,7 @@
   "description": "Sync layer & text styles from any Sketch Library",
   "author": "Sigurd Mannsaker",
   "homepage": "https://github.com/sigtm/sketch-style-libraries",
-  "version": "0.3",
+  "version": "0.3.1",
   "identifier": "io.sigurd.sketch.sketch-style-libraries",
   "compatibleVersion": "48.2",
   "commands": [
