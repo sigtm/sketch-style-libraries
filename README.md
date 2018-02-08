@@ -23,15 +23,19 @@ A lightweight plugin that lets you pull layer & text styles from a Sketch Librar
 <a href="http://bit.ly/SketchRunnerWebsite"><img src="http://bit.ly/RunnerBadgeBlue" width="160" height="41"></a>
 
 The easiest way to install Style Libraries is via Sketch Runner. Otherwise, you can clone this repo or grab the [latest release](https://github.com/sigtm/sketch-style-libraries/releases/latest)) and double click the `.sketchplugin` file to install it manually.
-s
+
 
 ## What it does
 
 Existing styles are updated (matched by name), and missing ones are added.
 
-*NOTE:* I only came across zeroheight's [Library Styles Sync](https://github.com/zeroheight/library-styles-sync) after publishing this, so check that one out too and see which one fits your workflow best. Library Styles Sync appears to grab all styles from any library you have placed a symbol from, while mine lets you pick one from a list. So a bit more control, but adding an additional step. Beyond that, they do the same thing :)
+If you've placed symbols from a library, it will be selected by default in the library list. If you've used multiple libraries, the most heavily used one will be selected.
 
-So if you use an iOS/Android library for device mockups but dont want its styles added to your project files, or if you want to import styles without/before placing any symbols, this plugin might come in handy. Otherwise, Library Styles Sync might be quicker for you.
+*NOTE:* I only came across [Library Styles Sync](https://github.com/zeroheight/library-styles-sync) after publishing this, so check it out and see which one fits your workflow best. That one pulls all styles from any library you have placed a symbol from, while mine lets you confirm the library you want to sync from first. 
+
+So a bit more control, but adding an additional step. Beyond that, they do the same thing.
+
+So if you've used multiple libraries (adding generic iOS components for example) but dont want all their styles added to your project files, this plugin might come in handy. Or if you want to import styles without/before placing any symbols. Otherwise, Library Styles Sync might be just a smidge more instant for you :)
 
 
 ## Acknowledgements

@@ -1,16 +1,25 @@
-// Pass an array and a property key, and get a new array
-// containing just that property for each item
+// Map function for non-JS arrays
 //
-var getArrayOfValues = (array, key) => {
+var map = (array, func) => {
   let result = [];
-  let length = array.count();
 
-  for (let i = 0; i < length; i++) {
-    result[i] = array[i][key]();
+  for (let i = 0; i < array.length; i++) {
+    result[i] = func(array[i]);
   }
   
   return result;
 };
+
+// Convert NSString to JS string
+//
+var plainString = (value) => {
+  if (typeof value == 'string') {
+    return value;
+  }
+  else {
+    return value.stringByReplacingPercentEscapesUsingEncoding(NSUTF8StringEncoding);
+  }
+}
 
 // Create a ComboBox from an array of values
 //
@@ -33,12 +42,51 @@ var newSelect = (array, frame) => {
 // Launch popup to pick a library from a set of libraries.
 // Returns the chosen library.
 //
-var pickLibrary = (libs) => {
+var pickLibrary = (libs, doc) => {
 
-  let libNames = getArrayOfValues(libs, 'name');
+  let linkedSymbols = doc && doc.documentData().foreignSymbols();
+  let defaultIndex = 0;
+
+  let libNames = map(libs, x => x.name());
+  let libNamesRaw = map(libNames, x => plainString(x));
+
+      
+  // If a document is provided, the select will default
+  // to the most commonly used library in that document.
+  // Caveat: If multiple libraries by same name, the first
+  // match is used.
+  //
+  if (linkedSymbols) {
+
+    let usedLibs = {};
+    let winner = {};
+
+    // Tally up the amount of symbols from each library
+    for (let i = 0; i < linkedSymbols.length; i++) {
+      let libName = plainString(linkedSymbols[i].sourceLibraryName());
+
+      usedLibs[libName] = usedLibs[libName] || 0;
+      usedLibs[libName]++;
+
+      if (!winner.count || (usedLibs[libName] > winner.count)) {
+        winner.libName = libName;
+        winner.count = usedLibs[libName];
+      }
+    }
+
+    log(usedLibs);
+    
+    // Find index of the winner in the libIDs array
+    let winnerIndex = libNamesRaw.indexOf(winner && winner.libName);
+
+    // I'm not sure it's possible to find symbols in a library
+    // not found via AppController, but let's be safe
+    defaultIndex = (winnerIndex > -1) ? winnerIndex : 0;
+  }
 
   let alert = COSAlertWindow.new();
   let select = newSelect(libNames);
+  select.selectItemAtIndex(defaultIndex);
 
   alert.addAccessoryView(select);
   alert.setMessageText('Choose a library to sync styles from...');
@@ -117,11 +165,12 @@ var copyStylesFromDocument = (source, dest, context) => {
 
 var syncStyles = (context) => {
 
-  const userLibs = AppController.sharedInstance().librariesController().userLibraries();
-  const lib = pickLibrary(userLibs);
+  const doc = context.document;
+  const libs = AppController.sharedInstance().librariesController().userLibraries();
+  const lib = pickLibrary(libs, doc);
 
-  copyStylesFromDocument(lib.document(), context.document, context);
+  copyStylesFromDocument(lib.document(), doc, context);
 
 };
 
-export default syncStyles
+export default syncStyles;
