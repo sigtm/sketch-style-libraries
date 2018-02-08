@@ -31,11 +31,11 @@ Existing styles are updated (matched by name), and missing ones are added.
 
 If you've placed symbols from a library, it will be selected by default in the library list. If you've used multiple libraries, the most heavily used one will be selected.
 
-*NOTE:* I only came across [Library Styles Sync](https://github.com/zeroheight/library-styles-sync) after publishing this, so check it out and see which one fits your workflow best. That one pulls all styles from any library you have placed a symbol from, while mine lets you confirm the library you want to sync from first. 
+*NOTE:* I only came across [Library Styles Sync](https://github.com/zeroheight/library-styles-sync) after publishing this, so check it out and see which one fits your workflow best. That one pulls all styles from any library you have placed a symbol from, while mine pulls from one selected library at a time. 
 
 So a bit more control, but adding an additional step. Beyond that, they do the same thing.
 
-So if you've used multiple libraries (adding generic iOS components for example) but dont want all their styles added to your project files, this plugin might come in handy. Or if you want to import styles without/before placing any symbols. Otherwise, Library Styles Sync might be just a smidge more instant for you :)
+So if you've used multiple libraries (generic iOS/Android libraries for device mockups for example) but dont want their styles added to your project files, this plugin might come in handy. Or if you want just the styles without placing any symbols. Otherwise, Library Styles Sync works just as well :)
 
 
 ## Acknowledgements
