@@ -167,9 +167,18 @@ var syncStyles = (context) => {
 
   const doc = context.document;
   const libs = AppController.sharedInstance().librariesController().userLibraries();
-  const lib = pickLibrary(libs, doc);
 
-  copyStylesFromDocument(lib.document(), doc, context);
+  if (libs.length) {
+
+    const lib = pickLibrary(libs, doc);
+
+    copyStylesFromDocument(lib.document(), doc, context);
+
+  }
+
+  else {
+    context.document.showMessage('Couldn\'t find any user defined libraries to sync from 🤷‍');
+  }
 
 };
 

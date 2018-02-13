@@ -244,9 +244,15 @@ var syncStyles = function syncStyles(context) {
 
   var doc = context.document;
   var libs = AppController.sharedInstance().librariesController().userLibraries();
-  var lib = pickLibrary(libs, doc);
 
-  copyStylesFromDocument(lib.document(), doc, context);
+  if (libs.length) {
+
+    var lib = pickLibrary(libs, doc);
+
+    copyStylesFromDocument(lib.document(), doc, context);
+  } else {
+    context.document.showMessage('Couldn\'t find any user defined libraries to sync from 🤷‍');
+  }
 };
 
 exports['default'] = syncStyles;
