@@ -3,23 +3,34 @@
   "description": "Sync layer & text styles from any Sketch Library",
   "author": "Sigurd Mannsaker",
   "homepage": "https://github.com/sigtm/sketch-style-libraries",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "identifier": "io.sigurd.sketch.sketch-style-libraries",
   "compatibleVersion": "48.2",
   "commands": [
     {
-      "name": "🔗 Sync styles from library...",
-      "identifier": "sync-styles-from-library",
-      "script": "./sync-styles.js",
+      "name": "Fetch from...",
       "shortcut": "cmd option control s",
-      "description": "Sync layer & text styles from a library...",
-      "icon": "icon.png"
+      "icon": "icon.png",
+      "identifier": "pull-styles-from-library",
+      "description": "Pull layer & text styles from a library",
+      "script": "./sync-styles.js",
+      "handler": "pullStyles"
+    },
+    {
+      "name": "Push to...",
+      "shortcut": "cmd option shift s",
+      "icon": "icon.png",
+      "identifier": "push-styles-to-library",
+      "description": "Push layer & text styles to a library...",
+      "script": "./sync-styles.js",
+      "handler": "pushStyles"
     }
   ],
   "menu": {
+    "title": "🔗 Sync styles with library",
     "items": [
-      "sync-styles-from-library"
-    ],
-    "isRoot": true
+      "pull-styles-from-library",
+      "push-styles-to-library"
+    ]
   }
 }

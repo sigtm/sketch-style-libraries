@@ -2,7 +2,7 @@
 
 # Sketch Style Libraries
 
-A lightweight plugin that lets you pull layer & text styles from a Sketch Library, so your project is always in sync.
+A lightweight plugin that lets you sync layer & text styles with a Sketch Library, so your project is always in sync.
 
 👌 Keep your whole design system in your library, and not just the symbols
 
@@ -14,8 +14,8 @@ A lightweight plugin that lets you pull layer & text styles from a Sketch Librar
 ## Usage
 
 1. Install plugin
-2. Plugins -> 🔗 Sync styles from library...
-3. Pick a library to import/update styles from
+2. Plugins -> 🔗 Sync styles with library -> Fetch from... *or* Push to...
+3. Pick a library
 4. Profit
 
 ## Installing
@@ -27,9 +27,9 @@ The easiest way to install Style Libraries is via Sketch Runner. Otherwise, you 
 
 ## What it does
 
-Existing styles are updated (matched by name), and missing ones are added.
+Existing styles are updated (matched by name), and missing ones are added. Will be adding the ability to delete styles soon (if they don't exist in the source document).
 
-If you've placed symbols from a library, it will be selected by default in the library list. If you've used multiple libraries, the most heavily used one will be selected.
+If you've placed symbols from a library, it attempts to select it by default in the library list. If you've used multiple libraries, the most heavily used one should be selected.
 
 *NOTE:* I only came across [Library Styles Sync](https://github.com/zeroheight/library-styles-sync) after publishing this, so check it out and see which one fits your workflow best. That one pulls all styles from any library you have placed a symbol from, while mine pulls from one selected library at a time. 
 
@@ -47,6 +47,8 @@ Particular credit goes to these two excellent plugins, which I wholeheartedly re
 [Styles Generator](https://github.com/lucaorio/sketch-styles-generator)
 
 [Shared Text Styles](https://github.com/nilshoenson/shared-text-styles)
+
+[Move to library](https://github.com/ahmedmigo/Move-to-library-sketchplugin)
 
 
 ## Input
