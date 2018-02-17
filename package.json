@@ -1,6 +1,6 @@
 {
   "name": "sketch-style-libraries",
-  "description": "Sync layer & text styles from any Sketch Library",
+  "description": "Sync layer & text styles with any Sketch Library",
   "icon": "assets/icon.png",
   "author": "Sigurd Mannsaker",
   "version": "0.4.0",
