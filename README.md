@@ -22,7 +22,7 @@ A lightweight plugin that lets you sync layer & text styles with a Sketch Librar
 
 <a href="http://bit.ly/SketchRunnerWebsite"><img src="http://bit.ly/RunnerBadgeBlue" width="160" height="41"></a>
 
-The easiest way to install Style Libraries is via Sketch Runner. Otherwise, you can clone this repo or grab the [latest release](https://github.com/sigtm/sketch-style-libraries/releases/latest)) and double click the `.sketchplugin` file to install it manually.
+The easiest way to install Style Libraries is via Sketch Runner. Otherwise, you can clone this repo or grab the [latest release](https://github.com/sigtm/sketch-style-libraries/releases/latest) and double click the `.sketchplugin` file to install it manually.
 
 
 ## What it does
@@ -38,7 +38,7 @@ So a bit more control, but adding an additional step. Beyond that, they are pret
 
 This plugin was made almost entirely by repurposing bits of code from existing plugins, as it was the only way I could figure out how to do anything. 
 
-Particular credit goes to these two excellent plugins, which I wholeheartedly recommend:
+Particular credit goes to these excellent plugins, which I wholeheartedly recommend:
 
 [Styles Generator](https://github.com/lucaorio/sketch-styles-generator)
 
