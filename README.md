@@ -29,13 +29,9 @@ The easiest way to install Style Libraries is via Sketch Runner. Otherwise, you 
 
 Existing styles are updated (matched by name), and missing ones are added. Will be adding the ability to delete styles soon (if they don't exist in the source document).
 
-If you've placed symbols from a library, it attempts to select it by default in the library list. If you've used multiple libraries, the most heavily used one should be selected.
+*NOTE:* I only came across [Library Styles Sync](https://github.com/zeroheight/library-styles-sync) after publishing this, so check it out and see which one fits your workflow best. That one pulls all styles from any library you have placed a symbol from, while this one syncs both ways but only from one selected library at a time. 
 
-*NOTE:* I only came across [Library Styles Sync](https://github.com/zeroheight/library-styles-sync) after publishing this, so check it out and see which one fits your workflow best. That one pulls all styles from any library you have placed a symbol from, while mine pulls from one selected library at a time. 
-
-So a bit more control, but adding an additional step. Beyond that, they do the same thing.
-
-So if you've used multiple libraries (generic iOS/Android libraries for device mockups for example) but dont want their styles added to your project files, this plugin might come in handy. Or if you want just the styles without placing any symbols. Otherwise, Library Styles Sync works just as well :)
+So a bit more control, but adding an additional step. Beyond that, they are pretty similar.
 
 
 ## Acknowledgements
