@@ -97,6 +97,46 @@ var isUserLibrary = function isUserLibrary(value) {
   return value instanceof MSUserAssetLibrary;
 };
 
+// Compares two values to see if they're the same
+// (https://github.com/lodash/lodash/blob/master/eq.js)
+//
+var eq = function eq(value, other) {
+  return value === other || value !== value && other !== other;
+};
+
+// Apply defaults to an object
+// (https://github.com/lodash/lodash/blob/master/defaults.js)
+//
+var defaults = function defaults(object) {
+  for (var _len = arguments.length, sources = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    sources[_key - 1] = arguments[_key];
+  }
+
+  var objectProto = Object.prototype;
+  var hasOwnProperty = objectProto.hasOwnProperty;
+
+  object = Object(object);
+
+  sources.forEach(function (source) {
+
+    if (source != null) {
+
+      source = Object(source);
+
+      for (var key in source) {
+
+        var value = object[key];
+
+        if (value === undefined || eq(value, objectProto[key]) && !hasOwnProperty.call(object, key)) {
+          object[key] = source[key];
+        }
+      }
+    }
+  });
+
+  return object;
+};
+
 // Map function for non-JS arrays
 //
 var map = function map(array, func) {
@@ -121,12 +161,14 @@ var plainString = function plainString(value) {
 
 // Create a ComboBox from an array of values
 //
-var newSelect = function newSelect(array, frame) {
-  frame = frame || [];
-  x = frame[0] || 0;
-  y = frame[1] || 0;
-  w = frame[2] || 240;
-  h = frame[3] || 28;
+var newSelect = function newSelect(array) {
+  var frame = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+
+
+  var x = frame[0] || 0;
+  var y = frame[1] || 0;
+  var w = frame[2] || 240;
+  var h = frame[3] || 28;
 
   var rect = NSMakeRect(x, y, w, h);
   var combo = NSComboBox.alloc().initWithFrame(rect);
@@ -136,6 +178,28 @@ var newSelect = function newSelect(array, frame) {
 
   return combo;
 };
+
+function newCheckbox(title, state) {
+  var frame = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+
+
+  state = state == false ? NSOffState : NSOnState;
+
+  var x = frame[0] || 0;
+  var y = frame[1] || 0;
+  var w = frame[2] || 240;
+  var h = frame[3] || 28;
+
+  var rect = NSMakeRect(x, y, w, h);
+  var checkbox = NSButton.alloc().initWithFrame(rect);
+
+  checkbox.setButtonType(NSSwitchButton);
+  checkbox.setBezelStyle(0);
+  checkbox.setTitle(title);
+  checkbox.setState(state);
+
+  return checkbox;
+}
 
 // From a set of styles, create an object with the style names as keys
 //
@@ -171,10 +235,32 @@ var stringTemplate = function stringTemplate(input, values) {
   return result;
 };
 
+// Save data to document
+//
+var saveToDoc = function saveToDoc(key, value) {
+
+  var id = context.plugin.identifier();
+  var docData = context.document.documentData();
+  var cmd = context.command;
+
+  cmd.setValue_forKey_onLayer_forPluginIdentifier(value, key, docData, id);
+};
+
+// Get data from document
+//
+var getFromDoc = function getFromDoc(key, value) {
+
+  var id = context.plugin.identifier();
+  var docData = context.document.documentData();
+  var cmd = context.command;
+
+  return cmd.valueForKey_onLayer_forPluginIdentifier(key, docData, id);
+};
+
 // Copy layer and text styles from one document to another,
 // updating any that already exist by the same name
 //
-var copyStyles = function copyStyles(source, dest, context, callback) {
+var copyStyles = function copyStyles(source, dest, callback) {
 
   var sourceData = source.documentData();
   var destData = dest.documentData();;
@@ -222,14 +308,36 @@ var copyStyles = function copyStyles(source, dest, context, callback) {
   }
 };
 
-// Launch popup to pick a library from an array of libraries.
-// Returns the chosen library.
+// Launch popup to pick a library from an array of libraries, along with other options.
 //
-var pickLibrary = function pickLibrary(libs, doc, messageText, infoText) {
+// Options:
+//
+// {
+//   libs: [Libraries]
+//   messageText: [String]
+//   infoText: [String] (optional)
+// }
+//
+// Returns:
+//
+// {
+//   lib: [Library],
+//   deleteStyles: 1 or 0
+// }
+//
+var pickOptions = function pickOptions() {
+  var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
+
+  if (!opts.messageText || !opts.libs) {
+    return;
+  }
+
+  var doc = context.document;
+  var libs = opts.libs;
   var linkedSymbols = doc && doc.documentData().foreignSymbols();
-  var defaultIndex = 0;
 
+  var defaultIndex = 0;
   var libNames = map(libs, function (x) {
     return x.name();
   });
@@ -269,25 +377,35 @@ var pickLibrary = function pickLibrary(libs, doc, messageText, infoText) {
   }
 
   var alert = COSAlertWindow['new']();
-  alert.setMessageText(messageText);
+  alert.setMessageText(opts.messageText);
 
   var select = newSelect(libNames);
   select.selectItemAtIndex(defaultIndex);
   alert.addAccessoryView(select);
 
-  if (infoText) {
-    alert.setInformativeText(infoText);
+  if (opts.infoText) {
+    alert.setInformativeText(opts.infoText);
   }
+
+  var deleteStyles = newCheckbox("Delete removed styles?", true[(0, 38, 112, 16)]);
+  alert.addAccessoryView(deleteStyles);
 
   alert.addButtonWithTitle('OK');
   alert.addButtonWithTitle('Cancel');
 
   alert.alert().window().setInitialFirstResponder(select);
+  select.setNextKeyView(deleteStyles);
 
   var response = alert.runModal();
 
   if (response === 1000) {
-    return libs[select.indexOfSelectedItem()];
+
+    result = {
+      lib: libs[select.indexOfSelectedItem()],
+      deleteStyles: deleteStyles.state()
+    };
+
+    return result;
   } else {
     return null;
   }
@@ -310,19 +428,25 @@ var pushStyles = function pushStyles(context) {
   }
 
   var doc = context.document;
-  var lib = pickLibrary(libs, doc, 'Push styles to', 'NOTE: If you have your library file open, you have to close and reopen it to see the changes.');
 
-  if (!lib) {
+  var options = pickOptions({
+    libs: libs,
+    messageText: 'Push styles to',
+    infoText: 'NOTE: If you have your library file open, you have to close and reopen it to see the changes.'
+  });
+
+  if (!options) {
     return;
   }
 
+  var lib = options.lib;
   var libUrl = lib.locationOnDisk();
 
   var libDoc = MSDocument['new']();
   libDoc.readDocumentFromURL_ofType_error(libUrl, "sketch", null);
   libDoc.revertToContentsOfURL_ofType_error(libUrl, "sketch", null);
 
-  copyStyles(doc, libDoc, context, function (error, data) {
+  copyStyles(doc, libDoc, function (error, data) {
 
     if (error) {
       context.document.showMessage(error);
@@ -354,13 +478,22 @@ var pullStyles = function pullStyles(context) {
   }
 
   var doc = context.document;
-  var lib = pickLibrary(libs, doc, 'Fetch styles from');
 
-  if (!lib) {
+  var options = pickOptions({
+    libs: libs,
+    messageText: 'Fetch styles from'
+  });
+
+  if (!options) {
     return;
   }
 
-  copyStyles(lib.document(), doc, context, function (error, data) {
+  saveToDoc('defaultPullDeleteStyles', options.deleteStyles);
+  var test = getFromDoc('deleteStyles');
+
+  var lib = options.lib;
+
+  copyStyles(lib.document(), doc, function (error, data) {
 
     if (error) {
       context.document.showMessage(error);
