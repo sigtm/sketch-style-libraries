@@ -45,7 +45,7 @@ var defaults = (object, ...sources) => {
         }
       }
     }
-  })
+  });
 
   return object;
 }
@@ -63,6 +63,7 @@ var map = (array, func) => {
   return result;
 }
 
+
 // Convert NSString to JS string
 //
 var plainString = (value) => {
@@ -73,6 +74,14 @@ var plainString = (value) => {
     return value.stringByReplacingPercentEscapesUsingEncoding(NSUTF8StringEncoding);
   }
 }
+
+
+// Get the libraryID() of an object as a string
+//
+var getLibraryID = (obj) => {
+  return obj.libraryID().toString();
+}
+
 
 // Create a ComboBox from an array of values
 //
@@ -156,7 +165,7 @@ var stringTemplate = (input, values) => {
 
 // Save data to document
 //
-var saveToDoc = (key, value) => {
+var setDefault = (key, value) => {
 
   let id = context.plugin.identifier();
   let docData = context.document.documentData();
@@ -165,16 +174,25 @@ var saveToDoc = (key, value) => {
   cmd.setValue_forKey_onLayer_forPluginIdentifier(value, key, docData, id);
 };
 
+
 // Get data from document
 //
-var getFromDoc = (key, value) => {
+var getDefault = (key, value) => {
 
   let id = context.plugin.identifier();
   let docData = context.document.documentData();
   let cmd = context.command;
-  
-  return cmd.valueForKey_onLayer_forPluginIdentifier(key, docData, id);
+
+  let result = cmd.valueForKey_onLayer_forPluginIdentifier(key, docData, id);
+
+  // Return undefined if null, so defaults() doesn't skip it
+  if (result === null) {
+    result = undefined;
+  }
+
+  return result;
 };
+
 
 // Copy layer and text styles from one document to another,
 // updating any that already exist by the same name
@@ -229,107 +247,114 @@ var copyStyles = (source, dest, callback) => {
 };
 
 
-// Launch popup to pick a library from an array of libraries, along with other options.
+// Get the most used library in the document, by symbol count
+// Returns the ID of the top library
 //
-// Options:
-//
-// {
-//   libs: [Libraries]
-//   messageText: [String]
-//   infoText: [String] (optional)
-// }
-//
-// Returns:
-//
-// {
-//   lib: [Library],
-//   deleteStyles: 1 or 0
-// }
-//
-var pickOptions = (opts = {}) => {
+var getTopLibrary = () => {
 
-  if (!opts.messageText || !opts.libs) {
-    return;
-  }
+  let foreignSymbols = context.document.documentData().foreignSymbols();
 
-  let doc = context.document;
-  let libs = opts.libs;
-  let linkedSymbols = doc && doc.documentData().foreignSymbols();
+  let usedLibs = {};
+  let winner = {
+    id: null,
+    count: 0
+  };
 
-  let defaultIndex = 0;
-  let libNames = map(libs, x => x.name());
-  let libNamesRaw = map(libNames, x => plainString(x));
+  // Tally up the amount of symbols from each library
+  for (let i = 0; i < foreignSymbols.length; i++) {
 
-      
-  // If a document is provided, the select will default
-  // to the most commonly used library in that document.
-  // Caveat: If multiple libraries by same name, the first
-  // match is used.
-  //
-  if (linkedSymbols) {
+    let libID = getLibraryID(foreignSymbols[i]);
 
-    let usedLibs = {};
-    let winner = {};
-
-    // Tally up the amount of symbols from each library
-    for (let i = 0; i < linkedSymbols.length; i++) {
-      let libName = plainString(linkedSymbols[i].sourceLibraryName());
-
-      usedLibs[libName] = usedLibs[libName] || 0;
-      usedLibs[libName]++;
-
-      if (!winner.count || (usedLibs[libName] > winner.count)) {
-        winner.libName = libName;
-        winner.count = usedLibs[libName];
+    if (!usedLibs[libID]) {
+      usedLibs[libID] = {
+        id: libID,
+        count: 0
       }
     }
-    
-    // Find index of the winner in the libIDs array
-    let winnerIndex = libNamesRaw.indexOf(winner && winner.libName);
 
-    // I'm not sure it's possible to find symbols in a library
-    // not found via AppController, but let's be safe
-    defaultIndex = (winnerIndex > -1) ? winnerIndex : 0;
+    let lib = usedLibs[libID];
+
+    lib.count++
+
+    if (lib.count > winner.count) {
+      winner = lib;
+    }
   }
+  
+  return winner.id;
+}
+
+
+// Launch popup for picking your push/pull options
+// Pass it default values if you want
+//
+var selectOptions = (opts = {}) => {
+
+  opts = defaults(opts, {
+    libs: AppController.sharedInstance().librariesController().userLibraries(),
+    deleteStyles: 0,
+    infoText: null,
+    libraryID: getTopLibrary(),
+    messageText: "Pick your library"
+  });
+
+  const libNames = map(opts.libs, x => x.name());
+
+  let defaultLibraryIndex = 0;
+
+  // If a default library ID exists, find its index in the libs array
+  if (opts.libraryID) {
+    for (let i = 0; i < opts.libs.length; i++) {
+      if (opts.libraryID == getLibraryID(opts.libs[i])) {
+        defaultLibraryIndex = i;
+        break;
+      }
+    }
+  }
+
+  // Create alert window
 
   let alert = COSAlertWindow.new();
   alert.setMessageText(opts.messageText);
 
   let select = newSelect(libNames);
-  select.selectItemAtIndex(defaultIndex);
+  select.selectItemAtIndex(defaultLibraryIndex);
   alert.addAccessoryView(select);
 
   if (opts.infoText) {
     alert.setInformativeText(opts.infoText);
   }
 
-  let deleteStyles = newCheckbox("Delete removed styles?", true [0,38,112,16]);
-  alert.addAccessoryView(deleteStyles);
+  let deleteStylesCheckbox = newCheckbox("Delete removed styles?", opts.deleteStyles, [0,38,112,16]);
+  alert.addAccessoryView(deleteStylesCheckbox);
 
   alert.addButtonWithTitle('OK');
   alert.addButtonWithTitle('Cancel');
 
+  // Set keyboard responders
+
   alert.alert().window().setInitialFirstResponder(select);
-  select.setNextKeyView(deleteStyles);
+  select.setNextKeyView(deleteStylesCheckbox);
+
+  // Run modal and evaluate response
 
   let response = alert.runModal();
 
   if (response === 1000) {
 
-    result = {
-      lib: libs[select.indexOfSelectedItem()],
-      deleteStyles: deleteStyles.state()
-    }
+    opts.library = opts.libs[select.indexOfSelectedItem()];
+    opts.libraryID = getLibraryID(opts.library);
+    opts.deleteStyles = deleteStylesCheckbox.state();
 
-    return result;
+    return opts;
 
   }
-
   else {
     return null;
   }
 
-};
+}
+
 
 
 // ----------------------------------------------------------------------------
@@ -341,26 +366,37 @@ var pickOptions = (opts = {}) => {
 
 var pushStyles = (context) => {
 
+  const doc = context.document;
   const libs = AppController.sharedInstance().librariesController().userLibraries();
 
+  // Stop here if there are no user libraries
   if (!libs.length) {
     context.document.showMessage('Couldn\'t find any user defined libraries 🤷‍');
     return;
   }
 
-  const doc = context.document;
-
-  const options = pickOptions({
+  // Get user options
+  const options = selectOptions({
+    deleteStyles: getDefault('defaultPushDeleteStyles'),
+    infoText: 'NOTE: If you have your library file open, you have to close and reopen it to see the changes.',
+    libraryID: getDefault('defaultLibraryID'),
     libs: libs,
-    messageText: 'Push styles to',
-    infoText: 'NOTE: If you have your library file open, you have to close and reopen it to see the changes.'
+    messageText: 'Push styles to'
   });
 
+  // Stop here if the user clicked cancel
   if (!options) {
     return;
   }
 
-  const lib = options.lib;
+  // Save the user options as defaults for next time
+  setDefault('defaultPushDeleteStyles', options.deleteStyles);
+  setDefault('defaultLibraryID', options.libraryID);
+
+
+  // Draw the rest of the owl
+
+  const lib = options.library;
   const libUrl = lib.locationOnDisk();
 
   const libDoc = MSDocument.new();
@@ -401,27 +437,35 @@ var pushStyles = (context) => {
 var pullStyles = (context) => {
 
   const libs = AppController.sharedInstance().librariesController().userLibraries();
+  const doc = context.document;
 
+  // Stop here if there are no user libraries
   if (!libs.length) {
     context.document.showMessage('Couldn\'t find any user defined libraries 🤷‍');
     return;
   }
 
-  const doc = context.document;
-
-  const options = pickOptions({
+  // Get user options
+  options = selectOptions({
+    deleteStyles: getDefault('defaultPullDeleteStyles'),
+    libraryID: getDefault('defaultLibraryID'),
     libs: libs,
-    messageText: 'Fetch styles from'
+    messageText: 'Fetch styles from',
   });
 
+  // Stop here if the user clicked cancel
   if (!options) {
     return;
   }
 
-  saveToDoc('defaultPullDeleteStyles', options.deleteStyles);
-  let test = getFromDoc('deleteStyles');
+  // Save user options as defaults for next time
+  setDefault('defaultPullDeleteStyles', options.deleteStyles);
+  setDefault('defaultLibraryID', options.libraryID);
 
-  const lib = options.lib;
+
+  // Draw the rest of the owl
+
+  const lib = options.library;
 
   copyStyles(lib.document(), doc, (error, data) => {
 

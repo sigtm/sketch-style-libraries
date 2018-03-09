@@ -159,6 +159,12 @@ var plainString = function plainString(value) {
   }
 };
 
+// Get the libraryID() of an object as a string
+//
+var getLibraryID = function getLibraryID(obj) {
+  return obj.libraryID().toString();
+};
+
 // Create a ComboBox from an array of values
 //
 var newSelect = function newSelect(array) {
@@ -237,7 +243,7 @@ var stringTemplate = function stringTemplate(input, values) {
 
 // Save data to document
 //
-var saveToDoc = function saveToDoc(key, value) {
+var setDefault = function setDefault(key, value) {
 
   var id = context.plugin.identifier();
   var docData = context.document.documentData();
@@ -248,13 +254,20 @@ var saveToDoc = function saveToDoc(key, value) {
 
 // Get data from document
 //
-var getFromDoc = function getFromDoc(key, value) {
+var getDefault = function getDefault(key, value) {
 
   var id = context.plugin.identifier();
   var docData = context.document.documentData();
   var cmd = context.command;
 
-  return cmd.valueForKey_onLayer_forPluginIdentifier(key, docData, id);
+  var result = cmd.valueForKey_onLayer_forPluginIdentifier(key, docData, id);
+
+  // Return undefined if null, so defaults() doesn't skip it
+  if (result === null) {
+    result = undefined;
+  }
+
+  return result;
 };
 
 // Copy layer and text styles from one document to another,
@@ -308,104 +321,109 @@ var copyStyles = function copyStyles(source, dest, callback) {
   }
 };
 
-// Launch popup to pick a library from an array of libraries, along with other options.
+// Get the most used library in the document, by symbol count
+// Returns the ID of the top library
 //
-// Options:
+var getTopLibrary = function getTopLibrary() {
+
+  var foreignSymbols = context.document.documentData().foreignSymbols();
+
+  var usedLibs = {};
+  var winner = {
+    id: null,
+    count: 0
+  };
+
+  // Tally up the amount of symbols from each library
+  for (var i = 0; i < foreignSymbols.length; i++) {
+
+    var libID = getLibraryID(foreignSymbols[i]);
+
+    if (!usedLibs[libID]) {
+      usedLibs[libID] = {
+        id: libID,
+        count: 0
+      };
+    }
+
+    var lib = usedLibs[libID];
+
+    lib.count++;
+
+    if (lib.count > winner.count) {
+      winner = lib;
+    }
+  }
+
+  return winner.id;
+};
+
+// Launch popup for picking your push/pull options
+// Pass it default values if you want
 //
-// {
-//   libs: [Libraries]
-//   messageText: [String]
-//   infoText: [String] (optional)
-// }
-//
-// Returns:
-//
-// {
-//   lib: [Library],
-//   deleteStyles: 1 or 0
-// }
-//
-var pickOptions = function pickOptions() {
+var selectOptions = function selectOptions() {
   var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
 
-  if (!opts.messageText || !opts.libs) {
-    return;
-  }
+  opts = defaults(opts, {
+    libs: AppController.sharedInstance().librariesController().userLibraries(),
+    deleteStyles: 0,
+    infoText: null,
+    libraryID: getTopLibrary(),
+    messageText: "Pick your library"
+  });
 
-  var doc = context.document;
-  var libs = opts.libs;
-  var linkedSymbols = doc && doc.documentData().foreignSymbols();
-
-  var defaultIndex = 0;
-  var libNames = map(libs, function (x) {
+  var libNames = map(opts.libs, function (x) {
     return x.name();
   });
-  var libNamesRaw = map(libNames, function (x) {
-    return plainString(x);
-  });
 
-  // If a document is provided, the select will default
-  // to the most commonly used library in that document.
-  // Caveat: If multiple libraries by same name, the first
-  // match is used.
-  //
-  if (linkedSymbols) {
+  var defaultLibraryIndex = 0;
 
-    var usedLibs = {};
-    var winner = {};
-
-    // Tally up the amount of symbols from each library
-    for (var i = 0; i < linkedSymbols.length; i++) {
-      var libName = plainString(linkedSymbols[i].sourceLibraryName());
-
-      usedLibs[libName] = usedLibs[libName] || 0;
-      usedLibs[libName]++;
-
-      if (!winner.count || usedLibs[libName] > winner.count) {
-        winner.libName = libName;
-        winner.count = usedLibs[libName];
+  // If a default library ID exists, find its index in the libs array
+  if (opts.libraryID) {
+    for (var i = 0; i < opts.libs.length; i++) {
+      if (opts.libraryID == getLibraryID(opts.libs[i])) {
+        defaultLibraryIndex = i;
+        break;
       }
     }
-
-    // Find index of the winner in the libIDs array
-    var winnerIndex = libNamesRaw.indexOf(winner && winner.libName);
-
-    // I'm not sure it's possible to find symbols in a library
-    // not found via AppController, but let's be safe
-    defaultIndex = winnerIndex > -1 ? winnerIndex : 0;
   }
+
+  // Create alert window
 
   var alert = COSAlertWindow['new']();
   alert.setMessageText(opts.messageText);
 
   var select = newSelect(libNames);
-  select.selectItemAtIndex(defaultIndex);
+  select.selectItemAtIndex(defaultLibraryIndex);
   alert.addAccessoryView(select);
 
   if (opts.infoText) {
     alert.setInformativeText(opts.infoText);
   }
 
-  var deleteStyles = newCheckbox("Delete removed styles?", true[(0, 38, 112, 16)]);
-  alert.addAccessoryView(deleteStyles);
+  var deleteStylesCheckbox = newCheckbox("Delete removed styles?", opts.deleteStyles, [0, 38, 112, 16]);
+  alert.addAccessoryView(deleteStylesCheckbox);
 
   alert.addButtonWithTitle('OK');
   alert.addButtonWithTitle('Cancel');
 
+  // Set keyboard responders
+
   alert.alert().window().setInitialFirstResponder(select);
-  select.setNextKeyView(deleteStyles);
+  select.setNextKeyView(deleteStylesCheckbox);
+
+  // Run modal and evaluate response
 
   var response = alert.runModal();
 
   if (response === 1000) {
 
-    result = {
-      lib: libs[select.indexOfSelectedItem()],
-      deleteStyles: deleteStyles.state()
-    };
+    opts.library = opts.libs[select.indexOfSelectedItem()];
+    opts.libraryID = getLibraryID(opts.library);
+    opts.deleteStyles = deleteStylesCheckbox.state();
 
-    return result;
+    return opts;
   } else {
     return null;
   }
@@ -420,26 +438,36 @@ var pickOptions = function pickOptions() {
 
 var pushStyles = function pushStyles(context) {
 
+  var doc = context.document;
   var libs = AppController.sharedInstance().librariesController().userLibraries();
 
+  // Stop here if there are no user libraries
   if (!libs.length) {
     context.document.showMessage('Couldn\'t find any user defined libraries 🤷‍');
     return;
   }
 
-  var doc = context.document;
-
-  var options = pickOptions({
+  // Get user options
+  var options = selectOptions({
+    deleteStyles: getDefault('defaultPushDeleteStyles'),
+    infoText: 'NOTE: If you have your library file open, you have to close and reopen it to see the changes.',
+    libraryID: getDefault('defaultLibraryID'),
     libs: libs,
-    messageText: 'Push styles to',
-    infoText: 'NOTE: If you have your library file open, you have to close and reopen it to see the changes.'
+    messageText: 'Push styles to'
   });
 
+  // Stop here if the user clicked cancel
   if (!options) {
     return;
   }
 
-  var lib = options.lib;
+  // Save the user options as defaults for next time
+  setDefault('defaultPushDeleteStyles', options.deleteStyles);
+  setDefault('defaultLibraryID', options.libraryID);
+
+  // Draw the rest of the owl
+
+  var lib = options.library;
   var libUrl = lib.locationOnDisk();
 
   var libDoc = MSDocument['new']();
@@ -471,27 +499,34 @@ var pushStyles = function pushStyles(context) {
 var pullStyles = function pullStyles(context) {
 
   var libs = AppController.sharedInstance().librariesController().userLibraries();
+  var doc = context.document;
 
+  // Stop here if there are no user libraries
   if (!libs.length) {
     context.document.showMessage('Couldn\'t find any user defined libraries 🤷‍');
     return;
   }
 
-  var doc = context.document;
-
-  var options = pickOptions({
+  // Get user options
+  options = selectOptions({
+    deleteStyles: getDefault('defaultPullDeleteStyles'),
+    libraryID: getDefault('defaultLibraryID'),
     libs: libs,
     messageText: 'Fetch styles from'
   });
 
+  // Stop here if the user clicked cancel
   if (!options) {
     return;
   }
 
-  saveToDoc('defaultPullDeleteStyles', options.deleteStyles);
-  var test = getFromDoc('deleteStyles');
+  // Save user options as defaults for next time
+  setDefault('defaultPullDeleteStyles', options.deleteStyles);
+  setDefault('defaultLibraryID', options.libraryID);
 
-  var lib = options.lib;
+  // Draw the rest of the owl
+
+  var lib = options.library;
 
   copyStyles(lib.document(), doc, function (error, data) {
 
