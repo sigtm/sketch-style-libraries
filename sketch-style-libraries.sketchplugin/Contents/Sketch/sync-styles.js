@@ -168,15 +168,17 @@ var getLibraryID = function getLibraryID(obj) {
 // Create a ComboBox from an array of values
 //
 var newSelect = function newSelect(array) {
-  var frame = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  var frame = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
 
-  var x = frame[0] || 0;
-  var y = frame[1] || 0;
-  var w = frame[2] || 240;
-  var h = frame[3] || 28;
+  defaults(frame, {
+    x: 0,
+    y: 0,
+    w: 240,
+    h: 28
+  });
 
-  var rect = NSMakeRect(x, y, w, h);
+  var rect = NSMakeRect(frame.x, frame.y, frame.w, frame.h);
   var combo = NSComboBox.alloc().initWithFrame(rect);
 
   combo.addItemsWithObjectValues(array);
@@ -186,17 +188,19 @@ var newSelect = function newSelect(array) {
 };
 
 function newCheckbox(title, state) {
-  var frame = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+  var frame = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
 
   state = state == false ? NSOffState : NSOnState;
 
-  var x = frame[0] || 0;
-  var y = frame[1] || 0;
-  var w = frame[2] || 240;
-  var h = frame[3] || 28;
+  defaults(frame, {
+    x: 0,
+    y: 0,
+    w: 240,
+    h: 28
+  });
 
-  var rect = NSMakeRect(x, y, w, h);
+  var rect = NSMakeRect(frame.x, frame.y, frame.w, frame.h);
   var checkbox = NSButton.alloc().initWithFrame(rect);
 
   checkbox.setButtonType(NSSwitchButton);
@@ -205,6 +209,32 @@ function newCheckbox(title, state) {
   checkbox.setState(state);
 
   return checkbox;
+}
+
+function newDescription(text) {
+  var frame = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+
+  defaults(frame, {
+    x: 0,
+    y: 0,
+    w: 240,
+    h: 28
+  });
+
+  var rect = NSMakeRect(frame.x, frame.y, frame.w, frame.h);
+
+  var label = NSTextField.alloc().initWithFrame(rect);
+
+  label.setStringValue(text);
+  label.setFont(NSFont.systemFontOfSize(11));
+  label.setTextColor(NSColor.colorWithCalibratedRed_green_blue_alpha(0, 0, 0, 0.5));
+  label.setBezeled(false);
+  label.setDrawsBackground(false);
+  label.setEditable(false);
+  label.setSelectable(false);
+
+  return label;
 }
 
 // From a set of styles, create an object with the style names as keys
@@ -273,12 +303,13 @@ var getDefault = function getDefault(key, value) {
 // Copy layer and text styles from one document to another,
 // updating any that already exist by the same name
 //
-var copyStyles = function copyStyles(source, dest, callback) {
+var copyStyles = function copyStyles(source, dest, deleteStyles, callback) {
 
   var sourceData = source.documentData();
   var destData = dest.documentData();;
   var newCount = 0;
   var updateCount = 0;
+  var deleteCount = 0;
 
   try {
     var _arr = ['layerStyles', 'layerTextStyles'];
@@ -310,11 +341,23 @@ var copyStyles = function copyStyles(source, dest, callback) {
           newCount++;
         }
       }
+
+      if (deleteStyles) {
+
+        for (var _name in destStylesByName) {
+
+          if (!sourceStylesByName[_name]) {
+            destStyles.removeSharedStyle(destStylesByName[_name]);
+            deleteCount++;
+          }
+        }
+      }
     }
 
     callback(false, {
       updated: updateCount,
-      'new': newCount
+      'new': newCount,
+      deleted: deleteCount
     });
   } catch (error) {
     callback(error, null);
@@ -394,16 +437,19 @@ var selectOptions = function selectOptions() {
   var alert = COSAlertWindow['new']();
   alert.setMessageText(opts.messageText);
 
-  var select = newSelect(libNames);
-  select.selectItemAtIndex(defaultLibraryIndex);
-  alert.addAccessoryView(select);
-
   if (opts.infoText) {
     alert.setInformativeText(opts.infoText);
   }
 
-  var deleteStylesCheckbox = newCheckbox("Delete removed styles?", opts.deleteStyles, [0, 38, 112, 16]);
+  var select = newSelect(libNames);
+  select.selectItemAtIndex(defaultLibraryIndex);
+  alert.addAccessoryView(select);
+
+  var deleteStylesCheckbox = newCheckbox('Delete styles?', opts.deleteStyles);
   alert.addAccessoryView(deleteStylesCheckbox);
+
+  var deleteStylesDescription = newDescription('Check this if you also want to delete styles that don\'t exist in the source file');
+  alert.addAccessoryView(deleteStylesDescription);
 
   alert.addButtonWithTitle('OK');
   alert.addButtonWithTitle('Cancel');
@@ -474,7 +520,7 @@ var pushStyles = function pushStyles(context) {
   libDoc.readDocumentFromURL_ofType_error(libUrl, "sketch", null);
   libDoc.revertToContentsOfURL_ofType_error(libUrl, "sketch", null);
 
-  copyStyles(doc, libDoc, function (error, data) {
+  copyStyles(doc, libDoc, options.deleteStyles, function (error, data) {
 
     if (error) {
       context.document.showMessage(error);
@@ -487,7 +533,21 @@ var pushStyles = function pushStyles(context) {
         libDoc.writeToURL_ofType_forSaveOperation_originalContentsURL_error_(libUrl, "com.bohemiancoding.sketch.drawing", NSSaveOperation, nil, nil);
 
         var message = '🤘 Pushed ' + (data.updated + data['new']) + ' styles';
-        if (data['new']) message += ' (' + data['new'] + ' new)';
+
+        var details = [];
+
+        if (data['new']) {
+          details.push(data['new'] + ' new');
+        }
+
+        if (data.deleted) {
+          details.push('Deleted ' + data.deleted);
+        }
+
+        if (details.length) {
+          message += ' (' + details.join(' · ') + ')';
+        }
+
         context.document.showMessage(message);
       } catch (error) {
         context.document.showMessage(error);
@@ -528,7 +588,7 @@ var pullStyles = function pullStyles(context) {
 
   var lib = options.library;
 
-  copyStyles(lib.document(), doc, function (error, data) {
+  copyStyles(lib.document(), doc, options.deleteStyles, function (error, data) {
 
     if (error) {
       context.document.showMessage(error);
@@ -538,7 +598,21 @@ var pullStyles = function pullStyles(context) {
     } else {
 
       var message = '🤘 Pulled ' + (data.updated + data['new']) + ' styles';
-      if (data['new']) message += ' (' + data['new'] + ' new)';
+
+      var details = [];
+
+      if (data['new']) {
+        details.push(data['new'] + ' new');
+      }
+
+      if (data.deleted) {
+        details.push('Deleted ' + data.deleted);
+      }
+
+      if (details.length) {
+        message += ' (' + details.join(' · ') + ')';
+      }
+
       context.document.showMessage(message);
     }
   });
