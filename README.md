@@ -51,6 +51,8 @@ This plugin was made almost entirely by repurposing bits of code from existing p
 
 Particular credit goes to these excellent plugins, which I wholeheartedly recommend:
 
+[All of Jason Burns' plugins](https://github.com/sonburn)
+
 [Styles Generator](https://github.com/lucaorio/sketch-styles-generator)
 
 [Shared Text Styles](https://github.com/nilshoenson/shared-text-styles)
