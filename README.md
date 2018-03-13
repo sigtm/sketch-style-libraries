@@ -32,7 +32,11 @@ Existing styles are updated (matched by name), and missing ones are added. If yo
 
 ## What's new
 
-*1.0.0:* Strict mode added, which also deletes styles that don't exist in the file you're syncing from. It has the basic features I set out to make now, so let's call this version 1.0 :)
+*1.0.0*
+
+* Strict mode added, which deletes styles that don't exist in the file you're syncing from
+* More reliably guesses a default library the first time you run it, by counting the symbols you've placed from each available library
+* Remembers your options. Strict mode is stored separately for pushing and pulling in case you only want to use it in one direction.
 
 
 ## What's next
