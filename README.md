@@ -27,11 +27,18 @@ The easiest way to install Style Libraries is via Sketch Runner. Otherwise, you 
 
 ## What it does
 
-Existing styles are updated (matched by name), and missing ones are added. Will be adding the ability to delete styles soon (if they don't exist in the source document).
+Existing styles are updated (matched by name), and missing ones are added. If you use "strict mode", it will also remove any styles that don't exist in your library – and vice versa if you're pushing to a library.
 
-*NOTE:* I only came across [Library Styles Sync](https://github.com/zeroheight/library-styles-sync) after publishing this, so check it out and see which one fits your workflow best. That one pulls all styles from any library you have placed a symbol from, while this one syncs both ways but only from one selected library at a time. 
 
-So a bit more control, but adding an additional step. Beyond that, they are pretty similar.
+## What's new
+
+*1.0.0:* Strict mode added, which also deletes styles that don't exist in the file you're syncing from. It has the basic features I set out to make now, so let's call this version 1.0 :)
+
+
+## What's next
+
+* Look into supporting Cloud Libraries
+* Merging duplicate styles if possible
 
 
 ## Acknowledgements
