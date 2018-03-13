@@ -83,6 +83,51 @@ var getLibraryID = (obj) => {
 }
 
 
+// From a set of styles, create an object with the style names as keys
+//
+var getStylesByName = (styles) => {
+  let result = {};
+
+  for (let i = 0; i < styles.numberOfSharedStyles(); i++) {
+    let style = styles.objects().objectAtIndex(i);
+    result[style.name()] = style;
+  }
+
+  return result;
+}
+
+
+// Save data to document
+//
+var setDefault = (key, value) => {
+
+  let id = context.plugin.identifier();
+  let docData = context.document.documentData();
+  let cmd = context.command;
+
+  cmd.setValue_forKey_onLayer_forPluginIdentifier(value, key, docData, id);
+}
+
+
+// Get data from document
+//
+var getDefault = (key, value) => {
+
+  let id = context.plugin.identifier();
+  let docData = context.document.documentData();
+  let cmd = context.command;
+
+  let result = cmd.valueForKey_onLayer_forPluginIdentifier(key, docData, id);
+
+  // Return undefined if null, so defaults() doesn't skip it
+  if (result === null) {
+    result = undefined;
+  }
+
+  return result;
+}
+
+
 // Create a ComboBox from an array of values
 //
 var newSelect = (array, frame = {}) => {
@@ -104,6 +149,9 @@ var newSelect = (array, frame = {}) => {
 
 }
 
+
+// Create a checkbox
+//
 function newCheckbox(title, state, frame = {}) {
 
   state = (state == false) ? NSOffState : NSOnState;
@@ -112,7 +160,7 @@ function newCheckbox(title, state, frame = {}) {
     x: 0,
     y: 0,
     w: 240,
-    h: 28
+    h: 24
   });
 
   let rect = NSMakeRect(frame.x, frame.y, frame.w, frame.h);
@@ -126,6 +174,9 @@ function newCheckbox(title, state, frame = {}) {
   return checkbox;
 }
 
+
+// Create text description field
+//
 function newDescription(text, frame = {}) {
 
   defaults(frame, {
@@ -150,81 +201,11 @@ function newDescription(text, frame = {}) {
   return label;
 }
 
-// From a set of styles, create an object with the style names as keys
-//
-var getStylesByName = (styles) => {
-  let result = {};
-
-  for (let i = 0; i < styles.numberOfSharedStyles(); i++) {
-    let style = styles.objects().objectAtIndex(i);
-    result[style.name()] = style;
-  }
-
-  return result;
-
-};
-
-
-// Simplified Framer style text templates. Pass an object with keys matching any
-// {x}'s contained in the string, and they will be swapped
-//
-var stringTemplate = (input, values) => {
-
-  var result = input;
-
-  if (typeof values === 'object') {
-
-    for (let key in values) {
-      let pattern = '{' + key + '}';
-      let value = values[key];
-      result = result.replace(pattern, values[key]);
-    }
-
-  }
-  else {
-    log('stringTemplate(): values has to be an object');
-  }
-
-  return result;
-
-};
-
-
-// Save data to document
-//
-var setDefault = (key, value) => {
-
-  let id = context.plugin.identifier();
-  let docData = context.document.documentData();
-  let cmd = context.command;
-
-  cmd.setValue_forKey_onLayer_forPluginIdentifier(value, key, docData, id);
-};
-
-
-// Get data from document
-//
-var getDefault = (key, value) => {
-
-  let id = context.plugin.identifier();
-  let docData = context.document.documentData();
-  let cmd = context.command;
-
-  let result = cmd.valueForKey_onLayer_forPluginIdentifier(key, docData, id);
-
-  // Return undefined if null, so defaults() doesn't skip it
-  if (result === null) {
-    result = undefined;
-  }
-
-  return result;
-};
-
 
 // Copy layer and text styles from one document to another,
 // updating any that already exist by the same name
 //
-var copyStyles = (source, dest, deleteStyles, callback) => {
+var copyStyles = (source, dest, deleteStyles = false, callback = Function()) => {
 
   let sourceData = source.documentData();
   let destData = dest.documentData();;
@@ -261,6 +242,9 @@ var copyStyles = (source, dest, deleteStyles, callback) => {
         }
       }
   
+      // If the delete option was checked, we delete any style that doesn't have
+      // matching style by name in the source document
+      //
       if (deleteStyles) {
 
         for (let name in destStylesByName) {
@@ -285,7 +269,7 @@ var copyStyles = (source, dest, deleteStyles, callback) => {
     callback(error, null);
   }
 
-};
+}
 
 
 // Get the most used library in the document, by symbol count
@@ -366,10 +350,10 @@ var selectOptions = (opts = {}) => {
   select.selectItemAtIndex(defaultLibraryIndex);
   alert.addAccessoryView(select);
 
-  let deleteStylesCheckbox = newCheckbox('Delete styles?', opts.deleteStyles);
+  let deleteStylesCheckbox = newCheckbox('Strict sync?', opts.deleteStyles);
   alert.addAccessoryView(deleteStylesCheckbox);
 
-  let deleteStylesDescription = newDescription('Check this if you also want to delete styles that don\'t exist in the source file');
+  let deleteStylesDescription = newDescription('Strict sync deletes all styles that don\'t exist in the document you\'re syncing from');
   alert.addAccessoryView(deleteStylesDescription);
 
   alert.addButtonWithTitle('OK');

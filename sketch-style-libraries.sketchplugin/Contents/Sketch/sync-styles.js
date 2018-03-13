@@ -75,9 +75,6 @@ var exports =
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 // ----------------------------------------------------------------------------
 //
 // UTILITIES
@@ -165,78 +162,6 @@ var getLibraryID = function getLibraryID(obj) {
   return obj.libraryID().toString();
 };
 
-// Create a ComboBox from an array of values
-//
-var newSelect = function newSelect(array) {
-  var frame = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-
-  defaults(frame, {
-    x: 0,
-    y: 0,
-    w: 240,
-    h: 28
-  });
-
-  var rect = NSMakeRect(frame.x, frame.y, frame.w, frame.h);
-  var combo = NSComboBox.alloc().initWithFrame(rect);
-
-  combo.addItemsWithObjectValues(array);
-  combo.selectItemAtIndex(0);
-
-  return combo;
-};
-
-function newCheckbox(title, state) {
-  var frame = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-
-  state = state == false ? NSOffState : NSOnState;
-
-  defaults(frame, {
-    x: 0,
-    y: 0,
-    w: 240,
-    h: 28
-  });
-
-  var rect = NSMakeRect(frame.x, frame.y, frame.w, frame.h);
-  var checkbox = NSButton.alloc().initWithFrame(rect);
-
-  checkbox.setButtonType(NSSwitchButton);
-  checkbox.setBezelStyle(0);
-  checkbox.setTitle(title);
-  checkbox.setState(state);
-
-  return checkbox;
-}
-
-function newDescription(text) {
-  var frame = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-
-  defaults(frame, {
-    x: 0,
-    y: 0,
-    w: 240,
-    h: 28
-  });
-
-  var rect = NSMakeRect(frame.x, frame.y, frame.w, frame.h);
-
-  var label = NSTextField.alloc().initWithFrame(rect);
-
-  label.setStringValue(text);
-  label.setFont(NSFont.systemFontOfSize(11));
-  label.setTextColor(NSColor.colorWithCalibratedRed_green_blue_alpha(0, 0, 0, 0.5));
-  label.setBezeled(false);
-  label.setDrawsBackground(false);
-  label.setEditable(false);
-  label.setSelectable(false);
-
-  return label;
-}
-
 // From a set of styles, create an object with the style names as keys
 //
 var getStylesByName = function getStylesByName(styles) {
@@ -245,27 +170,6 @@ var getStylesByName = function getStylesByName(styles) {
   for (var i = 0; i < styles.numberOfSharedStyles(); i++) {
     var style = styles.objects().objectAtIndex(i);
     result[style.name()] = style;
-  }
-
-  return result;
-};
-
-// Simplified Framer style text templates. Pass an object with keys matching any
-// {x}'s contained in the string, and they will be swapped
-//
-var stringTemplate = function stringTemplate(input, values) {
-
-  var result = input;
-
-  if ((typeof values === 'undefined' ? 'undefined' : _typeof(values)) === 'object') {
-
-    for (var key in values) {
-      var pattern = '{' + key + '}';
-      var value = values[key];
-      result = result.replace(pattern, values[key]);
-    }
-  } else {
-    log('stringTemplate(): values has to be an object');
   }
 
   return result;
@@ -300,10 +204,89 @@ var getDefault = function getDefault(key, value) {
   return result;
 };
 
+// Create a ComboBox from an array of values
+//
+var newSelect = function newSelect(array) {
+  var frame = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+
+  defaults(frame, {
+    x: 0,
+    y: 0,
+    w: 240,
+    h: 28
+  });
+
+  var rect = NSMakeRect(frame.x, frame.y, frame.w, frame.h);
+  var combo = NSComboBox.alloc().initWithFrame(rect);
+
+  combo.addItemsWithObjectValues(array);
+  combo.selectItemAtIndex(0);
+
+  return combo;
+};
+
+// Create a checkbox
+//
+function newCheckbox(title, state) {
+  var frame = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+
+  state = state == false ? NSOffState : NSOnState;
+
+  defaults(frame, {
+    x: 0,
+    y: 0,
+    w: 240,
+    h: 24
+  });
+
+  var rect = NSMakeRect(frame.x, frame.y, frame.w, frame.h);
+  var checkbox = NSButton.alloc().initWithFrame(rect);
+
+  checkbox.setButtonType(NSSwitchButton);
+  checkbox.setBezelStyle(0);
+  checkbox.setTitle(title);
+  checkbox.setState(state);
+
+  return checkbox;
+}
+
+// Create text description field
+//
+function newDescription(text) {
+  var frame = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+
+  defaults(frame, {
+    x: 0,
+    y: 0,
+    w: 240,
+    h: 28
+  });
+
+  var rect = NSMakeRect(frame.x, frame.y, frame.w, frame.h);
+
+  var label = NSTextField.alloc().initWithFrame(rect);
+
+  label.setStringValue(text);
+  label.setFont(NSFont.systemFontOfSize(11));
+  label.setTextColor(NSColor.colorWithCalibratedRed_green_blue_alpha(0, 0, 0, 0.5));
+  label.setBezeled(false);
+  label.setDrawsBackground(false);
+  label.setEditable(false);
+  label.setSelectable(false);
+
+  return label;
+}
+
 // Copy layer and text styles from one document to another,
 // updating any that already exist by the same name
 //
-var copyStyles = function copyStyles(source, dest, deleteStyles, callback) {
+var copyStyles = function copyStyles(source, dest) {
+  var deleteStyles = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+  var callback = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : Function();
+
 
   var sourceData = source.documentData();
   var destData = dest.documentData();;
@@ -342,6 +325,9 @@ var copyStyles = function copyStyles(source, dest, deleteStyles, callback) {
         }
       }
 
+      // If the delete option was checked, we delete any style that doesn't have
+      // matching style by name in the source document
+      //
       if (deleteStyles) {
 
         for (var _name in destStylesByName) {
@@ -445,10 +431,10 @@ var selectOptions = function selectOptions() {
   select.selectItemAtIndex(defaultLibraryIndex);
   alert.addAccessoryView(select);
 
-  var deleteStylesCheckbox = newCheckbox('Delete styles?', opts.deleteStyles);
+  var deleteStylesCheckbox = newCheckbox('Strict sync?', opts.deleteStyles);
   alert.addAccessoryView(deleteStylesCheckbox);
 
-  var deleteStylesDescription = newDescription('Check this if you also want to delete styles that don\'t exist in the source file');
+  var deleteStylesDescription = newDescription('Strict sync deletes all styles that don\'t exist in the document you\'re syncing from');
   alert.addAccessoryView(deleteStylesDescription);
 
   alert.addButtonWithTitle('OK');
