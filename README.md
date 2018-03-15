@@ -27,7 +27,9 @@ The easiest way to install Style Libraries is via Sketch Runner. Otherwise, you 
 
 ## What it does
 
-Existing styles are updated (matched by name), and missing ones are added. If you use "strict mode", it will also remove any styles that don't exist in your library – and vice versa if you're pushing to a library.
+Existing styles are updated (matched by name), and missing ones are added. If you use "strict mode", it will remove any styles that don't exist in your library – and vice versa if you're pushing to a library.
+
+It also has a merge function, which will merge duplicate styles by the same name.
 
 
 ## What's new
