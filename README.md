@@ -6,9 +6,9 @@ A lightweight plugin that lets you sync layer & text styles with a Sketch Librar
 
 👌 Keep your whole design system in your library, and not just the symbols
 
-👌 No manual export/import via separate "style files"
+👌 No export/import via separate "style files" or another cloud service
 
-👌 No need to sync with another cloud service 
+👌 Also merges duplicate styles, and deletes the ones you don't want anymore
 
 
 ## Usage
