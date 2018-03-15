@@ -32,7 +32,11 @@ Existing styles are updated (matched by name), and missing ones are added. If yo
 
 ## What's new
 
-*1.0.0*
+*v2*
+
+* Adds ability to merge duplicate styles (matched by name)
+
+*v1*
 
 * Strict mode added, which deletes styles that don't exist in the file you're syncing from
 * More reliably guesses a default library the first time you run it, by counting the symbols you've placed from each available library
