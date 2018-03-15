@@ -175,6 +175,26 @@ var getStylesByName = function getStylesByName(styles) {
   return result;
 };
 
+// Same as getStylesByName, but returning an array for each name
+// instead of just the last style found, to check for duplicates
+//
+var getAllStylesByName = function getAllStylesByName(styles) {
+  var result = {};
+
+  for (var i = 0; i < styles.numberOfSharedStyles(); i++) {
+    var style = styles.objects().objectAtIndex(i);
+    var name = style.name();
+
+    if (!result[name]) {
+      result[name] = [];
+    }
+
+    result[name].push(style);
+  }
+
+  return result;
+};
+
 // Save data to document
 //
 var setDefault = function setDefault(key, value) {
@@ -397,6 +417,7 @@ var selectOptions = function selectOptions() {
   opts = defaults(opts, {
     libs: AppController.sharedInstance().librariesController().userLibraries(),
     deleteStyles: 0,
+    mergeDuplicates: 1,
     infoText: null,
     libraryID: getTopLibrary(),
     messageText: "Pick your library"
@@ -431,11 +452,14 @@ var selectOptions = function selectOptions() {
   select.selectItemAtIndex(defaultLibraryIndex);
   alert.addAccessoryView(select);
 
-  var deleteStylesCheckbox = newCheckbox('Strict sync?', opts.deleteStyles);
+  var deleteStylesCheckbox = newCheckbox('Strict sync', opts.deleteStyles, { h: 16 });
   alert.addAccessoryView(deleteStylesCheckbox);
 
   var deleteStylesDescription = newDescription('Strict sync deletes all styles that don\'t exist in the document you\'re syncing from');
   alert.addAccessoryView(deleteStylesDescription);
+
+  var mergeDuplicatesCheckbox = newCheckbox('Merge duplicate styles', opts.mergeDuplicates);
+  alert.addAccessoryView(mergeDuplicatesCheckbox);
 
   alert.addButtonWithTitle('OK');
   alert.addButtonWithTitle('Cancel');
@@ -454,6 +478,7 @@ var selectOptions = function selectOptions() {
     opts.library = opts.libs[select.indexOfSelectedItem()];
     opts.libraryID = getLibraryID(opts.library);
     opts.deleteStyles = deleteStylesCheckbox.state();
+    opts.mergeDuplicates = mergeDuplicatesCheckbox.state();
 
     return opts;
   } else {
@@ -463,7 +488,69 @@ var selectOptions = function selectOptions() {
 
 // ----------------------------------------------------------------------------
 //
-// MAIN METHODS
+// MERGE STYLES
+//
+// ----------------------------------------------------------------------------
+
+
+// Merge duplicate styles in a document (used for the external library document as well)
+var mergeDuplicateStyles = function mergeDuplicateStyles(doc) {
+
+  var docData = doc.documentData();
+  var count = 0;
+
+  try {
+    var _arr2 = ['layerStyles', 'layerTextStyles'];
+
+
+    for (var _i2 = 0; _i2 < _arr2.length; _i2++) {
+      var type = _arr2[_i2];
+      var styles = docData[type]();
+      var stylesByName = getAllStylesByName(styles);
+
+      for (var key in stylesByName) {
+
+        var copies = stylesByName[key];
+
+        if (copies.length > 1) {
+
+          for (var i = 1; i < copies.length; i++) {
+            log('Duplicate style found and merged: ' + copies[i].name());
+            count++;
+            styles.synchroniseInstancesOfSharedObject_withInstance(copies[i], copies[0].style());
+            styles.removeSharedStyle(copies[i]);
+          }
+        }
+      }
+    }
+
+    return count;
+  } catch (error) {
+    context.document.showMessage(error);
+  }
+};
+
+// Proxy that takes the context as an argument, so merging in the current
+// document can be done directly from the menu as well
+var mergeCurrentDocDuplicates = function mergeCurrentDocDuplicates(context) {
+  var count = mergeDuplicateStyles(context.document);
+
+  if (count) {
+    var message = '🤘 Merged ' + count + ' style';
+
+    if (count > 1) {
+      message += 's';
+    }
+
+    context.document.showMessage(message);
+  } else {
+    context.document.showMessage('Couldn\'t find any duplicate styles 🤷‍');
+  }
+};
+
+// ----------------------------------------------------------------------------
+//
+// PUSH / PULL STYLES
 //
 // ----------------------------------------------------------------------------
 
@@ -485,6 +572,7 @@ var pushStyles = function pushStyles(context) {
     infoText: 'NOTE: If you have your library file open, you have to close and reopen it to see the changes.',
     libraryID: getDefault('defaultLibraryID'),
     libs: libs,
+    mergeDuplicates: getDefault('defaultMergeDuplicates'),
     messageText: 'Push styles to'
   });
 
@@ -494,8 +582,9 @@ var pushStyles = function pushStyles(context) {
   }
 
   // Save the user options as defaults for next time
-  setDefault('defaultPushDeleteStyles', options.deleteStyles);
   setDefault('defaultLibraryID', options.libraryID);
+  setDefault('defaultMergeDuplicates', options.mergeDuplicates);
+  setDefault('defaultPushDeleteStyles', options.deleteStyles);
 
   // Draw the rest of the owl
 
@@ -516,9 +605,17 @@ var pushStyles = function pushStyles(context) {
 
       try {
 
+        if (options.mergeDuplicates) {
+          data.merged = mergeDuplicateStyles(libDoc);
+        }
+
         libDoc.writeToURL_ofType_forSaveOperation_originalContentsURL_error_(libUrl, "com.bohemiancoding.sketch.drawing", NSSaveOperation, nil, nil);
 
-        var message = '🤘 Pushed ' + (data.updated + data['new']) + ' styles';
+        var message = '🤘 Pushed ' + (data.updated + data['new']) + ' style';
+
+        if (data.updated + data['new'] > 1) {
+          message += 's';
+        }
 
         var details = [];
 
@@ -528,6 +625,10 @@ var pushStyles = function pushStyles(context) {
 
         if (data.deleted) {
           details.push('Deleted ' + data.deleted);
+        }
+
+        if (data.merged) {
+          details.push('Merged ' + data.merged);
         }
 
         if (details.length) {
@@ -558,7 +659,8 @@ var pullStyles = function pullStyles(context) {
     deleteStyles: getDefault('defaultPullDeleteStyles'),
     libraryID: getDefault('defaultLibraryID'),
     libs: libs,
-    messageText: 'Fetch styles from'
+    messageText: 'Fetch styles from',
+    mergeDuplicates: getDefault('defaultMergeDuplicates')
   });
 
   // Stop here if the user clicked cancel
@@ -567,8 +669,9 @@ var pullStyles = function pullStyles(context) {
   }
 
   // Save user options as defaults for next time
-  setDefault('defaultPullDeleteStyles', options.deleteStyles);
   setDefault('defaultLibraryID', options.libraryID);
+  setDefault('defaultMergeDuplicates', options.mergeDuplicates);
+  setDefault('defaultPullDeleteStyles', options.deleteStyles);
 
   // Draw the rest of the owl
 
@@ -583,7 +686,15 @@ var pullStyles = function pullStyles(context) {
       context.document.showMessage('Couldn\'t find any styles to pull 🤷‍');
     } else {
 
-      var message = '🤘 Pulled ' + (data.updated + data['new']) + ' styles';
+      if (options.mergeDuplicates) {
+        data.merged = mergeDuplicateStyles(doc);
+      }
+
+      var message = '🤘 Pulled ' + (data.updated + data['new']) + ' style';
+
+      if (data.updated + data['new'] > 1) {
+        message += 's';
+      }
 
       var details = [];
 
@@ -593,6 +704,10 @@ var pullStyles = function pullStyles(context) {
 
       if (data.deleted) {
         details.push('Deleted ' + data.deleted);
+      }
+
+      if (data.merged) {
+        details.push('Merged ' + data.merged);
       }
 
       if (details.length) {
@@ -606,6 +721,7 @@ var pullStyles = function pullStyles(context) {
 
 exports.pullStyles = pullStyles;
 exports.pushStyles = pushStyles;
+exports.mergeCurrentDocDuplicates = mergeCurrentDocDuplicates;
 
 /***/ })
 /******/ ]);
@@ -617,4 +733,5 @@ exports.pushStyles = pushStyles;
 }
 that['pullStyles'] = __skpm_run.bind(this, 'pullStyles');
 that['onRun'] = __skpm_run.bind(this, 'default');
-that['pushStyles'] = __skpm_run.bind(this, 'pushStyles')
+that['pushStyles'] = __skpm_run.bind(this, 'pushStyles');
+that['mergeCurrentDocDuplicates'] = __skpm_run.bind(this, 'mergeCurrentDocDuplicates')

@@ -24,13 +24,22 @@
       "description": "Push layer & text styles to a library...",
       "script": "./sync-styles.js",
       "handler": "pushStyles"
+    },
+    {
+      "name": "Merge duplicate styles",
+      "icon": "icon.png",
+      "identifier": "merge-duplicate-styles",
+      "description": "Merge duplicate styles (matched by name)",
+      "script": "./sync-styles.js",
+      "handler": "mergeCurrentDocDuplicates"
     }
   ],
   "menu": {
-    "title": "🔗 Sync styles with library",
+    "title": "🔗 Style Libraries",
     "items": [
       "pull-styles-from-library",
-      "push-styles-to-library"
+      "push-styles-to-library",
+      "merge-duplicate-styles"
     ]
   }
 }
