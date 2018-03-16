@@ -34,11 +34,11 @@ It also has a merge function, which will merge duplicate styles by the same name
 
 ## What's new
 
-*v2*
+**2.0**
 
 * Adds ability to merge duplicate styles (matched by name)
 
-*v1*
+**1.0**
 
 * Strict mode added, which deletes styles that don't exist in the file you're syncing from
 * More reliably guesses a default library the first time you run it, by counting the symbols you've placed from each available library
