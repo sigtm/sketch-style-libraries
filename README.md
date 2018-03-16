@@ -48,7 +48,8 @@ It also has a merge function, which will merge duplicate styles by the same name
 ## What's next
 
 * Look into supporting Cloud Libraries
-* Merging duplicate styles if possible
+* Performance improvements
+* Update style names if they've changed in the source file
 
 
 ## Acknowledgements
