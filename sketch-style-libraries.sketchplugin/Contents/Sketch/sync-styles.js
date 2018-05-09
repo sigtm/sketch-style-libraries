@@ -330,17 +330,26 @@ var copyStyles = function copyStyles(source, dest) {
       for (var name in sourceStylesByName) {
         if (destStylesByName[name]) {
 
-          destStyles.updateValueOfSharedObject_byCopyingInstance(destStylesByName[name], sourceStylesByName[name].style());
-          destStyles.synchroniseInstancesOfSharedObject_withInstance(destStylesByName[name], sourceStylesByName[name].style());
+          if (destStyles.updateValueOfSharedObject_byCopyingInstance) {
+            destStyles.updateValueOfSharedObject_byCopyingInstance(destStylesByName[name], sourceStylesByName[name].style());
+            destStyles.synchroniseInstancesOfSharedObject_withInstance(destStylesByName[name], sourceStylesByName[name].style());
 
-          // This should be unnecessary, but fixes the occasional bug where layers in the source document get a 
-          // "refresh" icon in the style picker even though its style hasn't changed. So we force refresh it to be sure.
-          sourceStyles.updateValueOfSharedObject_byCopyingInstance(sourceStylesByName[name], sourceStylesByName[name].style());
-          sourceStyles.synchroniseInstancesOfSharedObject_withInstance(sourceStylesByName[name], sourceStylesByName[name].style());
-
+            // This should be unnecessary, but fixes the occasional bug where layers in the source document get a 
+            // "refresh" icon in the style picker even though its style hasn't changed. So we force refresh it to be sure.
+            sourceStyles.updateValueOfSharedObject_byCopyingInstance(sourceStylesByName[name], sourceStylesByName[name].style());
+            sourceStyles.synchroniseInstancesOfSharedObject_withInstance(sourceStylesByName[name], sourceStylesByName[name].style());
+          } else {
+            destStylesByName[name].updateToMatch(sourceStylesByName[name].style());
+            destStylesByName[name].resetReferencingInstances();
+          }
           updateCount++;
         } else {
-          destStyles.addSharedStyleWithName_firstInstance(name, sourceStylesByName[name].style());
+          if (destStyles.addSharedStyleWithName_firstInstance) {
+            destStyles.addSharedStyleWithName_firstInstance(name, sourceStylesByName[name].style());
+          } else {
+            var s = MSSharedStyle.alloc().initWithName_firstInstance(name, sourceStylesByName[name].style());
+            destStyles.addSharedObject(s);
+          }
           newCount++;
         }
       }
