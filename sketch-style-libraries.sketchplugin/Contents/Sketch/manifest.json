@@ -5,6 +5,7 @@
   "homepage": "https://github.com/sigtm/sketch-style-libraries",
   "version": "2.0.1",
   "identifier": "io.sigurd.sketch.sketch-style-libraries",
+  "icon": "icon.png",
   "compatibleVersion": "49.1",
   "commands": [
     {
