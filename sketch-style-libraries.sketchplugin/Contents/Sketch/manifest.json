@@ -3,9 +3,10 @@
   "description": "Sync layer & text styles with any Sketch Library",
   "author": "Sigurd Mannsaker",
   "homepage": "https://github.com/sigtm/sketch-style-libraries",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "identifier": "io.sigurd.sketch.sketch-style-libraries",
-  "compatibleVersion": "49.1",
+  "icon": "icon.png",
+  "compatibleVersion": "50",
   "commands": [
     {
       "name": "Fetch from...",
@@ -18,7 +19,7 @@
     },
     {
       "name": "Push to...",
-      "shortcut": "cmd option shift s",
+      "shortcut": "cmd control shift s",
       "icon": "icon.png",
       "identifier": "push-styles-to-library",
       "description": "Push layer & text styles to a library...",
