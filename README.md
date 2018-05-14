@@ -34,7 +34,13 @@ It also has a merge function, which will merge duplicate styles by the same name
 
 ## What's new
 
-**2.1**
+**2.0.2**
+
+* Fixes a bug (hopefully) where failing to grab a library's ID makes the whole plugin not work
+* Fixes missing keyboard shortcut for pushing styles (the previous one was stolen by "Save as...")
+* Fixes missing plugin icon
+
+**2.0.1**
 
 * Added Sketch 50 compatibility! Sorry for the delay, better late than never I hope.
 
