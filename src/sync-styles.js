@@ -79,7 +79,7 @@ var plainString = (value) => {
 // Get the libraryID() of an object as a string
 //
 var getLibraryID = (obj) => {
-  return obj.libraryID().toString();
+  return (obj.libraryID && obj.libraryID().toString());
 }
 
 

@@ -159,7 +159,7 @@ var plainString = function plainString(value) {
 // Get the libraryID() of an object as a string
 //
 var getLibraryID = function getLibraryID(obj) {
-  return obj.libraryID().toString();
+  return obj.libraryID && obj.libraryID().toString();
 };
 
 // From a set of styles, create an object with the style names as keys
