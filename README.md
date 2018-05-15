@@ -34,6 +34,10 @@ It also has a merge function, which will merge duplicate styles by the same name
 
 ## What's new
 
+**2.0.3**
+
+* Added some error handling
+
 **2.0.2**
 
 * Fixes a bug (hopefully) where failing to grab a library's ID makes the whole plugin not work

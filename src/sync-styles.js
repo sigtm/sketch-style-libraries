@@ -12,6 +12,27 @@ var isDocData = (value) => value instanceof MSDocumentData;
 var isUserLibrary = (value) => value instanceof MSUserAssetLibrary;
 
 
+// Show message
+//
+var msg = (msg) => {
+  context.document.showMessage(msg);
+}
+
+// Error handler
+//
+var error = (msg, error, showMessage = false) => {
+  // Display message to user
+  if (showMessage) {
+    msg(msg);
+  }
+
+  // Log it
+  log('----------------------------------------');
+  log('Style Libraries: ' + msg);
+  log('Error:');
+  log(error);
+}
+
 // Compares two values to see if they're the same
 // (https://github.com/lodash/lodash/blob/master/eq.js)
 //
@@ -79,7 +100,13 @@ var plainString = (value) => {
 // Get the libraryID() of an object as a string
 //
 var getLibraryID = (obj) => {
-  return (obj.libraryID && obj.libraryID().toString());
+  try {
+    return (obj.libraryID && obj.libraryID().toString());
+  } catch (e) {
+    error("Error while attempting to fetch library ID", e);
+    log(obj);
+    return undefined;
+  }
 }
 
 
@@ -298,6 +325,7 @@ var copyStyles = (source, dest, deleteStyles = false, callback = Function()) => 
   }
 
   catch (error) {
+    error('There was a problem while copying styles between documents', error, true);
     callback(error, null);
   }
 
@@ -321,6 +349,10 @@ var getTopLibrary = () => {
   for (let i = 0; i < foreignSymbols.length; i++) {
 
     let libID = getLibraryID(foreignSymbols[i]);
+
+    if (libID === undefined) {
+      continue;
+    }
 
     if (!usedLibs[libID]) {
       usedLibs[libID] = {
@@ -463,7 +495,7 @@ var mergeDuplicateStyles = (doc) => {
 
   }
   catch (error) {
-    context.document.showMessage(error);
+    msg(error);
   }
 }
 
@@ -480,10 +512,10 @@ var mergeCurrentDocDuplicates = (context) => {
       message += 's';
     }
 
-    context.document.showMessage(message);
+    msg(message);
   }
   else {
-    context.document.showMessage('Couldn\'t find any duplicate styles 🤷‍');
+    msg('Couldn\'t find any duplicate styles 🤷‍');
   }
 }
 
@@ -502,7 +534,7 @@ var pushStyles = (context) => {
 
   // Stop here if there are no user libraries
   if (!libs.length) {
-    context.document.showMessage('Couldn\'t find any user defined libraries 🤷‍');
+    msg('Couldn\'t find any user defined libraries 🤷‍');
     return;
   }
 
@@ -539,11 +571,11 @@ var pushStyles = (context) => {
   copyStyles(doc, libDoc, options.deleteStyles, (error, data) => {
 
     if (error) {
-      context.document.showMessage(error);
+      return;
     }
 
     else if (data.updated + data.new === 0) {
-      context.document.showMessage('Couldn\'t find any styles to push 🤷‍');
+      msg('Couldn\'t find any styles to push 🤷‍');
     }
 
     else {
@@ -580,11 +612,11 @@ var pushStyles = (context) => {
           message += ' (' + details.join(' · ') + ')';
         }
 
-        context.document.showMessage(message);
+        msg(message);
 
       }
       catch (error) {
-        context.document.showMessage(error);
+        msg(error);
       }
 
     }
@@ -600,7 +632,7 @@ var pullStyles = (context) => {
 
   // Stop here if there are no user libraries
   if (!libs.length) {
-    context.document.showMessage('Couldn\'t find any user defined libraries 🤷‍');
+    msg('Couldn\'t find any user defined libraries 🤷‍');
     return;
   }
 
@@ -631,12 +663,12 @@ var pullStyles = (context) => {
   copyStyles(lib.document(), doc, options.deleteStyles, (error, data) => {
 
     if (error) {
-      context.document.showMessage(error);
+      msg(error);
     }
 
     else if (data.updated + data.new === 0) {
       log(data);
-      context.document.showMessage('Couldn\'t find any styles to pull 🤷‍');
+      msg('Couldn\'t find any styles to pull 🤷‍');
     }
 
     else {
@@ -669,12 +701,11 @@ var pullStyles = (context) => {
         message += ' (' + details.join(' · ') + ')';
       }
 
-      context.document.showMessage(message);
+      msg(message);
 
     }
   });
 
 };
-
 
 export { pullStyles, pushStyles, mergeCurrentDocDuplicates };

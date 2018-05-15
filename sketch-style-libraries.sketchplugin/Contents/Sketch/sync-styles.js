@@ -94,6 +94,29 @@ var isUserLibrary = function isUserLibrary(value) {
   return value instanceof MSUserAssetLibrary;
 };
 
+// Show message
+//
+var msg = function msg(_msg) {
+  context.document.showMessage(_msg);
+};
+
+// Error handler
+//
+var error = function error(msg, _error) {
+  var showMessage = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+  // Display message to user
+  if (showMessage) {
+    msg(msg);
+  }
+
+  // Log it
+  log('----------------------------------------');
+  log('Style Libraries: ' + msg);
+  log('Error:');
+  log(_error);
+};
+
 // Compares two values to see if they're the same
 // (https://github.com/lodash/lodash/blob/master/eq.js)
 //
@@ -159,7 +182,13 @@ var plainString = function plainString(value) {
 // Get the libraryID() of an object as a string
 //
 var getLibraryID = function getLibraryID(obj) {
-  return obj.libraryID && obj.libraryID().toString();
+  try {
+    return obj.libraryID && obj.libraryID().toString();
+  } catch (e) {
+    error("Error while attempting to fetch library ID", e);
+    log(obj);
+    return undefined;
+  }
 };
 
 // From a set of styles, create an object with the style names as keys
@@ -375,6 +404,7 @@ var copyStyles = function copyStyles(source, dest) {
       deleted: deleteCount
     });
   } catch (error) {
+    error('There was a problem while copying styles between documents', error, true);
     callback(error, null);
   }
 };
@@ -396,6 +426,10 @@ var getTopLibrary = function getTopLibrary() {
   for (var i = 0; i < foreignSymbols.length; i++) {
 
     var libID = getLibraryID(foreignSymbols[i]);
+
+    if (libID === undefined) {
+      continue;
+    }
 
     if (!usedLibs[libID]) {
       usedLibs[libID] = {
@@ -535,7 +569,7 @@ var mergeDuplicateStyles = function mergeDuplicateStyles(doc) {
 
     return count;
   } catch (error) {
-    context.document.showMessage(error);
+    msg(error);
   }
 };
 
@@ -551,9 +585,9 @@ var mergeCurrentDocDuplicates = function mergeCurrentDocDuplicates(context) {
       message += 's';
     }
 
-    context.document.showMessage(message);
+    msg(message);
   } else {
-    context.document.showMessage('Couldn\'t find any duplicate styles 🤷‍');
+    msg('Couldn\'t find any duplicate styles 🤷‍');
   }
 };
 
@@ -571,7 +605,7 @@ var pushStyles = function pushStyles(context) {
 
   // Stop here if there are no user libraries
   if (!libs.length) {
-    context.document.showMessage('Couldn\'t find any user defined libraries 🤷‍');
+    msg('Couldn\'t find any user defined libraries 🤷‍');
     return;
   }
 
@@ -607,9 +641,9 @@ var pushStyles = function pushStyles(context) {
   copyStyles(doc, libDoc, options.deleteStyles, function (error, data) {
 
     if (error) {
-      context.document.showMessage(error);
+      return;
     } else if (data.updated + data['new'] === 0) {
-      context.document.showMessage('Couldn\'t find any styles to push 🤷‍');
+      msg('Couldn\'t find any styles to push 🤷‍');
     } else {
 
       try {
@@ -644,9 +678,9 @@ var pushStyles = function pushStyles(context) {
           message += ' (' + details.join(' · ') + ')';
         }
 
-        context.document.showMessage(message);
+        msg(message);
       } catch (error) {
-        context.document.showMessage(error);
+        msg(error);
       }
     }
   });
@@ -659,7 +693,7 @@ var pullStyles = function pullStyles(context) {
 
   // Stop here if there are no user libraries
   if (!libs.length) {
-    context.document.showMessage('Couldn\'t find any user defined libraries 🤷‍');
+    msg('Couldn\'t find any user defined libraries 🤷‍');
     return;
   }
 
@@ -689,10 +723,10 @@ var pullStyles = function pullStyles(context) {
   copyStyles(lib.document(), doc, options.deleteStyles, function (error, data) {
 
     if (error) {
-      context.document.showMessage(error);
+      msg(error);
     } else if (data.updated + data['new'] === 0) {
       log(data);
-      context.document.showMessage('Couldn\'t find any styles to pull 🤷‍');
+      msg('Couldn\'t find any styles to pull 🤷‍');
     } else {
 
       if (options.mergeDuplicates) {
@@ -723,7 +757,7 @@ var pullStyles = function pullStyles(context) {
         message += ' (' + details.join(' · ') + ')';
       }
 
-      context.document.showMessage(message);
+      msg(message);
     }
   });
 };
