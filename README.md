@@ -1,4 +1,4 @@
-![Icon](assets/icon.svg)
+![Icon](https://cdn.rawgit.com/sigtm/sketch-style-libraries/master/assets/icon.svg)
 
 # Sketch Style Libraries
 
