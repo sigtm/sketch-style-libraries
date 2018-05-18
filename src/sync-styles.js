@@ -145,6 +145,34 @@ var getAllStylesByName = (styles) => {
 }
 
 
+// Get instances of a style
+//
+var getInstancesOfStyle = (style, docData) => {
+  let result = [];
+  let pages = docData.pages();
+  let styleID = style.objectID();
+  
+  for (let i = 0; i < pages.length; i++) {
+
+    let page = pages[i];
+    let children = page.children();
+    
+    for (let j = 0; j < children.length; j++) {
+      
+      let child = children[j];
+      let sharedObjectID = child.style && child.style().sharedObjectID();
+      
+      if (sharedObjectID === styleID) {
+        result.push(child);
+      }
+    }
+  }
+
+  return result;
+}
+
+
+
 // Save data to document
 //
 var setDefault = (key, value) => {
@@ -479,10 +507,25 @@ var mergeDuplicateStyles = (doc) => {
         if (copies.length > 1) {
 
           for (let i = 1; i < copies.length; i++) {
+
+            // Pre Sketch 50
+            if (styles.synchroniseInstancesOfSharedObject_withInstance) {
+              styles.synchroniseInstancesOfSharedObject_withInstance(copies[i], copies[0].style());
+            }
+
+            // Sketch 50 (maybe older versions too, just don't wanna risk breaking anything I can't test)
+            else {
+              let instances = getInstancesOfStyle(copies[i], docData);
+
+              for (let instance of instances) {
+                instance.style().syncPropertiesFromObject(copies[0].style());
+              }              
+            }
+
+            styles.removeSharedStyle(copies[i]);
             log('Duplicate style found and merged: ' + copies[i].name());
             count++;
-            styles.synchroniseInstancesOfSharedObject_withInstance(copies[i], copies[0].style());
-            styles.removeSharedStyle(copies[i]);
+
           }
 
         }

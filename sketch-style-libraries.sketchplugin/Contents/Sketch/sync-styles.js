@@ -224,6 +224,32 @@ var getAllStylesByName = function getAllStylesByName(styles) {
   return result;
 };
 
+// Get instances of a style
+//
+var getInstancesOfStyle = function getInstancesOfStyle(style, docData) {
+  var result = [];
+  var pages = docData.pages();
+  var styleID = style.objectID();
+
+  for (var i = 0; i < pages.length; i++) {
+
+    var page = pages[i];
+    var children = page.children();
+
+    for (var j = 0; j < children.length; j++) {
+
+      var child = children[j];
+      var sharedObjectID = child.style && child.style().sharedObjectID();
+
+      if (sharedObjectID === styleID) {
+        result.push(child);
+      }
+    }
+  }
+
+  return result;
+};
+
 // Save data to document
 //
 var setDefault = function setDefault(key, value) {
@@ -558,10 +584,45 @@ var mergeDuplicateStyles = function mergeDuplicateStyles(doc) {
         if (copies.length > 1) {
 
           for (var i = 1; i < copies.length; i++) {
+
+            // Pre Sketch 50
+            if (styles.synchroniseInstancesOfSharedObject_withInstance) {
+              styles.synchroniseInstancesOfSharedObject_withInstance(copies[i], copies[0].style());
+            }
+
+            // Sketch 50 (maybe older versions too, just don't wanna risk breaking anything I can't test)
+            else {
+                var instances = getInstancesOfStyle(copies[i], docData);
+
+                var _iteratorNormalCompletion = true;
+                var _didIteratorError = false;
+                var _iteratorError = undefined;
+
+                try {
+                  for (var _iterator = instances[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var instance = _step.value;
+
+                    instance.style().syncPropertiesFromObject(copies[0].style());
+                  }
+                } catch (err) {
+                  _didIteratorError = true;
+                  _iteratorError = err;
+                } finally {
+                  try {
+                    if (!_iteratorNormalCompletion && _iterator['return']) {
+                      _iterator['return']();
+                    }
+                  } finally {
+                    if (_didIteratorError) {
+                      throw _iteratorError;
+                    }
+                  }
+                }
+              }
+
+            styles.removeSharedStyle(copies[i]);
             log('Duplicate style found and merged: ' + copies[i].name());
             count++;
-            styles.synchroniseInstancesOfSharedObject_withInstance(copies[i], copies[0].style());
-            styles.removeSharedStyle(copies[i]);
           }
         }
       }

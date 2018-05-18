@@ -34,6 +34,10 @@ It also has a merge function, which will merge duplicate styles by the same name
 
 ## What's new
 
+**2.0.4**
+
+* Fixed bug where merging duplicates did not work in Sketch 50
+
 **2.0.3**
 
 * Added some error handling
