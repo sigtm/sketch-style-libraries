@@ -1,3 +1,7 @@
+**Note: Since Sketch 51, libraries also include text & layer styles. I will therefore no longer be updating this plugin, and I can't guarantee that it works from v51 onwards.**
+
+---
+
 ![Icon](https://cdn.rawgit.com/sigtm/sketch-style-libraries/master/assets/icon.svg)
 
 # Sketch Style Libraries
